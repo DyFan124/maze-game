@@ -6,14 +6,13 @@
 
 // ========== 第一部分：游戏全局配置 (总指挥定义) ==========
 // 这些常量所有人共用，修改需通知全组
-#define SCREEN_WIDTH  2000 // 窗口宽度（像素）
-#define SCREEN_HEIGHT 1200 
-#define TARGET_FPS    60      // 目标帧率
-#define CELL_SIZE     40      // 每个网格的像素大小
-#define MAZE_WIDTH    15      // 迷宫宽度（格子数）
-#define MAZE_HEIGHT   15      // 迷宫高度（格子数）
-#define MAP_ROWS      15      // 地图有多少行 (600 / 40 = 15)
-#define MAP_COLS      20      // 地图有多少列 (800 / 40 = 20)
+#define SCREEN_WIDTH  2000    
+#define SCREEN_HEIGHT 1200    
+#define TARGET_FPS    60      
+#define CELL_SIZE     40      
+#define MAZE_WIDTH    50     
+#define MAZE_HEIGHT   30      
+
 
 // ========== 第二部分：地图格子类型定义 (采用地图系统同学的方案) ==========
 // 注意：全组必须统一使用这些常量值，不可自行定义其他值
@@ -50,8 +49,8 @@ typedef enum {
 void Map_Init(void);                     // 初始化地图（生成迷宫）
 void Map_Draw(void);                     // 绘制整个地图到屏幕
 int Map_GetTile(int gridX, int gridY);   // 获取指定格子类型（返回 TILE_WALL 等值）
-void Map_SetTile(int gridX, int gridY, int tileType); // 设置格子类型（用于动态事件）
 bool Map_IsWalkable(int gridX, int gridY); // 判断格子是否可通行
+void Map_SetTile(int gridX, int gridY, int tileType); // 设置格子类型（用于动态事件）
 
 // ---------- 模块2：玩家系统接口 (player.c 实现) ----------
 // 负责人：主角操控师
@@ -80,14 +79,15 @@ void UI_DrawMenu(void);                       // 绘制主菜单界面
 void UI_DrawPause(void);                      // 绘制暂停界面
 void UI_DrawWinScreen(void);                  // 绘制胜利界面
 void UI_DrawGameOverScreen(void);             // 绘制失败界面
+int  Player_GetScore(void);                   // 玩家得分
 
 // ========== 第五部分：总控函数声明 (总指挥在game.c中实现) ==========
 // 这些是总指挥的专属函数，用于整合调度所有模块
 
-void Game_Init(void);                         // 初始化整个游戏（调用各模块Init）
-void Game_Update(void);                       // 每帧更新游戏逻辑（状态机、碰撞检测、调度模块更新）
-void Game_Draw(void);                         // 每帧绘制游戏（根据状态调度模块绘制）
+void Game_Init(void);                         // 初始化整个游戏
+void Game_Update(void);                       // ← 添加这一行声明
+void Game_Draw(void);                         // 每帧绘制游戏
 GameState Game_GetCurrentState(void);         // 获取当前游戏状态
-void Game_ChangeState(GameState newState);    // 改变游戏状态（如从MENU切换到PLAYING）
+void Game_ChangeState(GameState newState);    // 改变游戏状态
 
 #endif // GAME_H

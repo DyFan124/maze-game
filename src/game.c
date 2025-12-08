@@ -1,50 +1,83 @@
-// Game_Init 函数实现
 #include "game.h"
+#include <stdio.h>
 
-// 私有全局变量
-static GameState currentGameState = GAME_STATE_MENU; // 初始为菜单状态
-static bool isGameInitialized = false; // 防止重复初始化
+// 全局状态
+static GameState currentState = GAME_STATE_PLAYING;
 
-void Game_Init(void)
-{
-    // 安全检查：避免重复初始化
-    if (isGameInitialized) {
-        TraceLog(LOG_WARNING, "游戏已经初始化过，跳过重复初始化");
-        return;
+// 初始化
+void Game_Init(void) {
+    currentState = GAME_STATE_PLAYING;
+    
+    // 初始化各模块
+    Map_Init();      // 地图
+    Player_Init();   // 玩家（正式的）
+    
+    printf("=== 游戏初始化完成 ===\n");
+    printf("地图系统: 已加载\n");
+    printf("玩家系统: 已加载\n");
+    printf("当前状态: 游戏中\n");
+}
+
+// 更新
+void Game_Update(void) {
+    if (currentState == GAME_STATE_PLAYING) {
+        // 更新玩家（处理输入和移动）
+        Player_Update();
+        
+        // 这里将来可以添加：
+        // 1. NPC更新
+        // 2. 事件更新
+        // 3. 碰撞检测
+        // 4. 胜负判断
     }
     
-    TraceLog(LOG_INFO, "游戏初始化开始");
-    
-    // 1. 初始化各模块
-    
-    // 1.1 地图系统
-    TraceLog(LOG_INFO, "初始化地图系统...");
-    Map_Init();
-    
-    // 1.2 玩家系统
-    TraceLog(LOG_INFO, "初始化玩家系统...");
-    Player_Init();
-    
-    // 1.3 NPC系统
-    TraceLog(LOG_INFO, "初始化NPC系统...");
-    NPC_Init();
-    
-    // 1.4 事件系统
-    // Event_Init(); // 如果模块3实现了这个函数
-    
-    // UI系统通常不需要显式初始化
-    
-    // ========== 2. 设置初始游戏状态 ==========
-    currentGameState = GAME_STATE_MENU; // 从主菜单开始
-    // 或者直接开始游戏：currentGameState = GAME_STATE_PLAYING;
-    
-    // ========== 3. 初始化游戏全局数据 ==========
-    // 这里可以添加游戏特有的全局数据初始化
-    // 例如：gameTime = 0.0f; difficulty = DIFFICULTY_EASY;
-    
-    TraceLog(LOG_INFO, "=== 游戏初始化完成 ===");
-    TraceLog(LOG_INFO, "初始状态: %s", 
-             (currentGameState == GAME_STATE_MENU) ? "主菜单" : "游戏中");
-    
-    isGameInitialized = true; // 标记为已初始化
+    // 状态切换逻辑（暂时简单处理）
+    if (IsKeyPressed(KEY_P)) {
+        currentState = (currentState == GAME_STATE_PLAYING) 
+                      ? GAME_STATE_PAUSED 
+                      : GAME_STATE_PLAYING;
+    }
+}
+
+// 绘制
+void Game_Draw(void) {
+    switch (currentState) {
+        case GAME_STATE_MENU:
+            UI_DrawMenu();           // 菜单界面
+            break;
+            
+        case GAME_STATE_PLAYING:
+            Map_Draw();              // 地图
+            Player_Draw();           // 玩家
+            UI_DrawHUD();            // 游戏内UI
+            break;
+            
+        case GAME_STATE_PAUSED:      // 新增暂停状态
+            Map_Draw();              // 先画游戏画面
+            Player_Draw();
+            UI_DrawHUD();
+            UI_DrawPause();          // 再画暂停覆盖层
+            break;
+            
+        case GAME_STATE_WIN:
+            Map_Draw();              // 底层游戏画面
+            Player_Draw();
+            UI_DrawWinScreen();      // 胜利界面
+            break;
+            
+        case GAME_STATE_GAME_OVER:
+            Map_Draw();              // 底层游戏画面
+            Player_Draw();
+            UI_DrawGameOverScreen(); // 失败界面
+            break;
+    }
+}
+
+// 状态管理函数
+GameState Game_GetCurrentState(void) { 
+    return currentState; 
+}
+
+void Game_ChangeState(GameState newState) { 
+    currentState = newState; 
 }
