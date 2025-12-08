@@ -1,18 +1,27 @@
 #ifndef GAME_H
 #define GAME_H
 
-// ========== 基础库包含 ==========
-#include "raylib.h"   // 图形库
-#include <stdbool.h>  // 使用bool类型
+#include "raylib.h"  
+#include <stdbool.h>  
 
 // ========== 第一部分：游戏全局配置 (总指挥定义) ==========
 // 这些常量所有人共用，修改需通知全组
-#define SCREEN_WIDTH  800     // 窗口宽度（像素）
-#define SCREEN_HEIGHT 600     // 窗口高度（像素）
+#define SCREEN_WIDTH  2000 // 窗口宽度（像素）
+#define SCREEN_HEIGHT 1200 
 #define TARGET_FPS    60      // 目标帧率
 #define CELL_SIZE     40      // 每个网格的像素大小
 #define MAZE_WIDTH    15      // 迷宫宽度（格子数）
 #define MAZE_HEIGHT   15      // 迷宫高度（格子数）
+#define MAP_ROWS      15      // 地图有多少行 (600 / 40 = 15)
+#define MAP_COLS      20      // 地图有多少列 (800 / 40 = 20)
+
+// ========== 第二部分：地图格子类型定义 (采用地图系统同学的方案) ==========
+// 注意：全组必须统一使用这些常量值，不可自行定义其他值
+#define TILE_FLOOR 0   // 通路/空地（可走）
+#define TILE_WALL  1   // 墙壁（不可走）
+#define TILE_ITEM  2   // 道具（可捡起加分）
+#define TILE_GOAL  3   // 终点/出口（通关目标）
+#define TILE_TRAP  4   // 陷阱（踩中扣血）
 
 // 游戏数值平衡（总指挥可协调调整）
 #define PLAYER_MAX_HEALTH 100 // 玩家最大生命值
@@ -20,7 +29,7 @@
 #define TRAP_DAMAGE      20   // 陷阱伤害
 #define NPC_DAMAGE       30   // NPC碰撞伤害
 
-// ========== 第二部分：核心数据类型 (总指挥定义) ==========
+// ========== 第三部分：核心数据类型 (总指挥定义) ==========
 // 这些类型所有人共用，确保数据格式统一
 
 // 游戏状态：主循环状态机的依据
@@ -32,26 +41,17 @@ typedef enum {
     GAME_STATE_GAME_OVER  // 失败
 } GameState;
 
-// 地图格子类型：用于地图数组和碰撞检测
-typedef enum {
-    TILE_PATH = 0,    // 通路（可走）
-    TILE_WALL,        // 墙壁（不可走）
-    TILE_ITEM,        // 道具（可捡）
-    TILE_EXIT,        // 终点（通关）
-    TILE_TRAP,        // 陷阱（扣血）
-    TILE_DAMAGED      // 损坏地面（动态事件用）
-} TileType;
-
-// ========== 第三部分：模块接口声明 (各模块负责实现) ==========
+// ========== 第四部分：模块接口声明 (各模块负责实现) ==========
 // 总指挥声明接口，各模块在自己的.c文件中实现具体功能
+// 注意：所有与地图格子相关的函数现在都使用 int 类型，值必须为上面的 TILE_XXX 常量
 
 // ---------- 模块1：地图系统接口 (map.c 实现) ----------
 // 负责人：游戏地基师
-void Map_Init(void);                          // 初始化地图（生成迷宫）
-void Map_Draw(void);                          // 绘制整个地图到屏幕
-TileType Map_GetTile(int gridX, int gridY);   // 获取指定格子类型
-void Map_SetTile(int gridX, int gridY, TileType type); // 设置格子类型（用于动态事件）
-bool Map_IsWalkable(int gridX, int gridY);    // 判断格子是否可通行
+void Map_Init(void);                     // 初始化地图（生成迷宫）
+void Map_Draw(void);                     // 绘制整个地图到屏幕
+int Map_GetTile(int gridX, int gridY);   // 获取指定格子类型（返回 TILE_WALL 等值）
+void Map_SetTile(int gridX, int gridY, int tileType); // 设置格子类型（用于动态事件）
+bool Map_IsWalkable(int gridX, int gridY); // 判断格子是否可通行
 
 // ---------- 模块2：玩家系统接口 (player.c 实现) ----------
 // 负责人：主角操控师
@@ -62,6 +62,7 @@ int  Player_GetHealth(void);                  // 获取当前生命值（供UI�
 int  Player_GetScore(void);                   // 获取当前积分（供UI显示）
 void Player_GetPosition(int* outGridX, int* outGridY); // 获取玩家网格坐标（供碰撞检测）
 void Player_TakeDamage(int damage);           // 玩家受伤害（由总指挥在碰撞时调用）
+void Player_AddScore(int points);             // 增加玩家积分
 
 // ---------- 模块3：NPC与事件系统接口 (npc.c / event.c 实现) ----------
 // 负责人：难度挑战者
@@ -80,7 +81,7 @@ void UI_DrawPause(void);                      // 绘制暂停界面
 void UI_DrawWinScreen(void);                  // 绘制胜利界面
 void UI_DrawGameOverScreen(void);             // 绘制失败界面
 
-// ========== 第四部分：总控函数声明 (总指挥在game.c中实现) ==========
+// ========== 第五部分：总控函数声明 (总指挥在game.c中实现) ==========
 // 这些是总指挥的专属函数，用于整合调度所有模块
 
 void Game_Init(void);                         // 初始化整个游戏（调用各模块Init）
