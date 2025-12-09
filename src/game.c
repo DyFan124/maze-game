@@ -1,60 +1,133 @@
 #include "game.h"
 #include <stdio.h>
 
-// 全局状态
 static GameState currentState = GAME_STATE_PLAYING;
 
-// 初始化
+// 添加一个函数来检测玩家是否到达终点
+static bool CheckPlayerReachedGoal(void) {
+    int playerGridX, playerGridY;
+    Player_GetPosition(&playerGridX, &playerGridY);
+    
+    // 获取玩家当前位置的地图格子类型
+    int tileType = Map_GetTile(playerGridX, playerGridY);
+    
+    // 如果玩家站在终点格子上
+    if (tileType == TILE_GOAL) {
+        printf("玩家到达终点！胜利！\n");
+        return true;
+    }
+    
+    return false;
+}
+
 void Game_Init(void) {
-    currentState = GAME_STATE_PLAYING;
+    currentState = GAME_STATE_MENU;  // 改成从菜单开始
     
     // 初始化各模块
-    Map_Init();      // 地图
-    Player_Init();   // 玩家（正式的）
+    Map_Init();
+    Player_Init();
     
     printf("=== 游戏初始化完成 ===\n");
-    printf("地图系统: 已加载\n");
-    printf("玩家系统: 已加载\n");
-    printf("当前状态: 游戏中\n");
 }
 
-// 更新
 void Game_Update(void) {
-    if (currentState == GAME_STATE_PLAYING) {
-        // 更新玩家（处理输入和移动）
-        Player_Update();
-        
-        // 这里将来可以添加：
-        // 1. NPC更新
-        // 2. 事件更新
-        // 3. 碰撞检测
-        // 4. 胜负判断
-    }
-    
-    // 状态切换逻辑（暂时简单处理）
-    if (IsKeyPressed(KEY_P)) {
-        currentState = (currentState == GAME_STATE_PLAYING) 
-                      ? GAME_STATE_PAUSED 
-                      : GAME_STATE_PLAYING;
+    switch (currentState) {
+        case GAME_STATE_MENU:
+            // 菜单状态，等待开始
+            if (IsKeyPressed(KEY_ENTER)) {
+                currentState = GAME_STATE_PLAYING;
+                printf("游戏开始！\n");
+            }
+            break;
+            
+        case GAME_STATE_PLAYING:
+            // 更新玩家（处理输入和移动）
+            Player_Update();
+            
+            // 检查是否到达终点
+            if (CheckPlayerReachedGoal()) {
+                currentState = GAME_STATE_WIN;
+                printf("游戏胜利！\n");
+            }
+            
+            // 检查玩家生命值
+            if (Player_GetHealth() <= 0) {
+                currentState = GAME_STATE_GAME_OVER;
+                printf("游戏失败！\n");
+            }
+            
+            // P键暂停
+            if (IsKeyPressed(KEY_P)) {
+                currentState = GAME_STATE_PAUSED;
+                printf("游戏暂停\n");
+            }
+            break;
+            
+        case GAME_STATE_PAUSED:
+            // P键继续
+            if (IsKeyPressed(KEY_P)) {
+                currentState = GAME_STATE_PLAYING;
+                printf("游戏继续\n");
+            }
+            break;
+            
+        case GAME_STATE_WIN:
+            // R键重新开始
+            if (IsKeyPressed(KEY_R)) {
+                // 重置游戏
+                Game_Init();
+                currentState = GAME_STATE_PLAYING;
+                printf("重新开始游戏\n");
+            }
+            break;
+            
+        case GAME_STATE_GAME_OVER:
+            // R键重新开始
+            if (IsKeyPressed(KEY_R)) {
+                Game_Init();
+                currentState = GAME_STATE_PLAYING;
+                printf("重新开始游戏\n");
+            }
+            break;
     }
 }
 
-// 绘制
 void Game_Draw(void) {
-    // 使用深色背景（看起来像黑暗的迷宫）
-    ClearBackground((Color){20, 20, 30, 255});  // 深蓝灰背景
+    // 深色背景
+    ClearBackground((Color){20, 20, 30, 255});
     
     switch (currentState) {
+        case GAME_STATE_MENU:
+            UI_DrawMenu();  // 显示主菜单
+            break;
+            
         case GAME_STATE_PLAYING:
-            Map_Draw();     // 只画墙壁，不画网格
-            Player_Draw();  // 画缩小后的小人
+            Map_Draw();
+            Player_Draw();
             UI_DrawHUD();
             break;
-        // ... 其他状态不变
+            
+        case GAME_STATE_PAUSED:
+            Map_Draw();
+            Player_Draw();
+            UI_DrawHUD();
+            UI_DrawPause();
+            break;
+            
+        case GAME_STATE_WIN:
+            Map_Draw();
+            Player_Draw();
+            UI_DrawWinScreen();
+            break;
+            
+        case GAME_STATE_GAME_OVER:
+            Map_Draw();
+            Player_Draw();
+            UI_DrawGameOverScreen();
+            break;
     }
 }
 
-// 状态管理函数
 GameState Game_GetCurrentState(void) { 
     return currentState; 
 }
