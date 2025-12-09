@@ -118,26 +118,39 @@ void Map_Init(void) {
     printf("[地图] 初始化完成\n");
 }
 
+// map.c - 简化绘制，移除网格线
 void Map_Draw(void) {
-    // 简单绘制：只画墙壁和通路
+    // 只绘制墙壁，不画网格线
     for (int y = 0; y < MAZE_HEIGHT; y++) {
         for (int x = 0; x < MAZE_WIDTH; x++) {
-            int pixelX = x * CELL_SIZE;
-            int pixelY = y * CELL_SIZE;
-            
             int tileType = gameMap[y][x];
-            Color tileColor;
             
+            // 只画墙壁和出口，不画"通路"（通路就是背景色）
             if (tileType == TILE_WALL) {
-                tileColor = DARKGRAY;
-            } else if (tileType == TILE_GOAL) {
-                tileColor = GREEN;
-            } else {
-                tileColor = LIGHTGRAY;
+                int pixelX = x * CELL_SIZE;
+                int pixelY = y * CELL_SIZE;
+                
+                // 绘制实心墙壁，不带边框
+                DrawRectangle(pixelX, pixelY, CELL_SIZE, CELL_SIZE, DARKGRAY);
+                
+                // 可选：给墙壁添加一些纹理效果
+                DrawRectangle(pixelX + 2, pixelY + 2, 
+                             CELL_SIZE - 4, CELL_SIZE - 4, 
+                             (Color){80, 80, 80, 255});
             }
-            
-            DrawRectangle(pixelX, pixelY, CELL_SIZE, CELL_SIZE, tileColor);
-            DrawRectangleLines(pixelX, pixelY, CELL_SIZE, CELL_SIZE, GRAY);
+            else if (tileType == TILE_GOAL) {
+                // 绘制出口（发光效果）
+                int pixelX = x * CELL_SIZE;
+                int pixelY = y * CELL_SIZE;
+                
+                // 中心发光
+                DrawRectangle(pixelX + CELL_SIZE/4, pixelY + CELL_SIZE/4,
+                             CELL_SIZE/2, CELL_SIZE/2, GREEN);
+                
+                // 外圈光晕
+                DrawRectangleLinesEx((Rectangle){pixelX, pixelY, CELL_SIZE, CELL_SIZE},
+                                    2, (Color){0, 255, 0, 100});
+            }
         }
     }
 }
@@ -152,6 +165,12 @@ int Map_GetTile(int gridX, int gridY) {
 }
 
 bool Map_IsWalkable(int gridX, int gridY) {
-    int tileType = Map_GetTile(gridX, gridY);
+    // 严格边界检查
+    if (gridX < 0 || gridX >= MAZE_WIDTH || 
+        gridY < 0 || gridY >= MAZE_HEIGHT) {
+        return false;  // 地图外不可走
+    }
+    
+    int tileType = gameMap[gridY][gridX];
     return (tileType == TILE_FLOOR || tileType == TILE_GOAL);
 }

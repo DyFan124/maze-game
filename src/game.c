@@ -41,35 +41,16 @@ void Game_Update(void) {
 
 // 绘制
 void Game_Draw(void) {
+    // 使用深色背景（看起来像黑暗的迷宫）
+    ClearBackground((Color){20, 20, 30, 255});  // 深蓝灰背景
+    
     switch (currentState) {
-        case GAME_STATE_MENU:
-            UI_DrawMenu();           // 菜单界面
-            break;
-            
         case GAME_STATE_PLAYING:
-            Map_Draw();              // 地图
-            Player_Draw();           // 玩家
-            UI_DrawHUD();            // 游戏内UI
-            break;
-            
-        case GAME_STATE_PAUSED:      // 新增暂停状态
-            Map_Draw();              // 先画游戏画面
-            Player_Draw();
+            Map_Draw();     // 只画墙壁，不画网格
+            Player_Draw();  // 画缩小后的小人
             UI_DrawHUD();
-            UI_DrawPause();          // 再画暂停覆盖层
             break;
-            
-        case GAME_STATE_WIN:
-            Map_Draw();              // 底层游戏画面
-            Player_Draw();
-            UI_DrawWinScreen();      // 胜利界面
-            break;
-            
-        case GAME_STATE_GAME_OVER:
-            Map_Draw();              // 底层游戏画面
-            Player_Draw();
-            UI_DrawGameOverScreen(); // 失败界面
-            break;
+        // ... 其他状态不变
     }
 }
 

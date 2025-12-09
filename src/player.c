@@ -1,101 +1,66 @@
-// player.c - 玩家系统（迷宫游戏专用）
+// player.c - 完整版本
 #include "game.h"
-#include <stdio.h>  // 用于printf调试
+#include <math.h>
 
-// ===== 私有数据 =====
-static int playerGridX = 1;      // 玩家所在的列（网格坐标）
-static int playerGridY = 1;      // 玩家所在的行（网格坐标）
-static int playerHealth = 100;   // 生命值
-static int playerScore = 0;      // 积分
+static float playerX = CELL_SIZE * 1.5f;
+static float playerY = CELL_SIZE * 1.5f;
+static float playerSpeed = 4.5f;
+static float playerRadius = CELL_SIZE * 0.25f;
+static int playerHealth = 100;
+static int playerScore = 0;
 
-// ===== 接口函数实现 =====
+// 碰撞检测函数
+static bool CheckCollisionWithWalls(float newX, float newY) {
+    int gridX = (int)(newX / CELL_SIZE);
+    int gridY = (int)(newY / CELL_SIZE);
+    
+    // 简单检查玩家当前所在的格子
+    return !Map_IsWalkable(gridX, gridY);
+}
 
 void Player_Init(void) {
-    printf("[玩家系统] 初始化\n");
-    
-    // 重置玩家状态
-    playerGridX = 1;           // 起始位置(1,1) - 确保不是墙
-    playerGridY = 1;
+    playerX = CELL_SIZE * 1.5f;
+    playerY = CELL_SIZE * 1.5f;
     playerHealth = 100;
     playerScore = 0;
-    
-    printf("  起始位置: (%d, %d)\n", playerGridX, playerGridY);
-    printf("  生命值: %d, 积分: %d\n", playerHealth, playerScore);
+    printf("[玩家] 初始化完成\n");
 }
 
 void Player_Update(void) {
-    // 记录目标位置
-    int targetX = playerGridX;
-    int targetY = playerGridY;
+    float moveX = 0, moveY = 0;
     
-    // 1. 获取键盘输入（WASD或方向键）
-    if (IsKeyPressed(KEY_W) || IsKeyPressed(KEY_UP))    targetY--;
-    if (IsKeyPressed(KEY_S) || IsKeyPressed(KEY_DOWN))  targetY++;
-    if (IsKeyPressed(KEY_A) || IsKeyPressed(KEY_LEFT))  targetX--;
-    if (IsKeyPressed(KEY_D) || IsKeyPressed(KEY_RIGHT)) targetX++;
+    if (IsKeyDown(KEY_W)) moveY = -1;
+    if (IsKeyDown(KEY_S)) moveY = 1;
+    if (IsKeyDown(KEY_A)) moveX = -1;
+    if (IsKeyDown(KEY_D)) moveX = 1;
     
-    // 如果没有按键，直接返回
-    if (targetX == playerGridX && targetY == playerGridY) {
-        return;
-    }
-    
-    // 2. 检查移动是否合法（调用地图系统的接口）
-    if (Map_IsWalkable(targetX, targetY)) {
-        // 可以移动
-        playerGridX = targetX;
-        playerGridY = targetY;
+    // 有移动输入才处理
+    if (moveX != 0 || moveY != 0) {
+        // 标准化
+        float length = sqrtf(moveX*moveX + moveY*moveY);
+        moveX /= length;
+        moveY /= length;
         
-        // 调试输出
-        printf("玩家移动到: (%d, %d)\n", playerGridX, playerGridY);
+        float newX = playerX + moveX * playerSpeed;
+        float newY = playerY + moveY * playerSpeed;
         
-        // 3. 检查当前格子效果（这部分由总指挥在game.c中处理）
-        // 比如：如果是道具就加分，如果是陷阱就扣血
-    } else {
-        // 撞墙了
-        printf("玩家撞墙！目标(%d,%d)不可通行\n", targetX, targetY);
+        if (!CheckCollisionWithWalls(newX, newY)) {
+            playerX = newX;
+            playerY = newY;
+        }
     }
 }
 
 void Player_Draw(void) {
-    // 将网格坐标转换为像素坐标
-    int pixelX = playerGridX * CELL_SIZE;
-    int pixelY = playerGridY * CELL_SIZE;
-    
-    // 绘制玩家（红色方块）
-    DrawRectangle(pixelX, pixelY, CELL_SIZE, CELL_SIZE, RED);
-    
-    // 在方块中心画个标记（便于观察）
-    DrawRectangle(pixelX + CELL_SIZE/2 - 2, 
-                  pixelY + CELL_SIZE/2 - 2, 
-                  4, 4, WHITE);
-                  
-    // 可选：绘制玩家朝向指示器
-    // 暂时不需要，因为迷宫是网格移动
+    DrawCircle((int)playerX, (int)playerY, playerRadius, RED);
+    DrawCircle((int)playerX, (int)playerY, playerRadius-2, (Color){255,100,100,255});
 }
 
+int Player_GetHealth(void) { return playerHealth; }
+int Player_GetScore(void) { return playerScore; }
 void Player_GetPosition(int* outGridX, int* outGridY) {
-    // 安全地返回玩家当前的网格坐标
-    *outGridX = playerGridX;
-    *outGridY = playerGridY;
+    *outGridX = (int)(playerX / CELL_SIZE);
+    *outGridY = (int)(playerY / CELL_SIZE);
 }
-
-int Player_GetHealth(void) {
-    return playerHealth;
-}
-
-// ===== 其他辅助函数（根据Game.h中的声明）=====
-
-int Player_GetScore(void) {
-    return playerScore;
-}
-
-void Player_TakeDamage(int damage) {
-    playerHealth -= damage;
-    if (playerHealth < 0) playerHealth = 0;
-    printf("玩家受到 %d 点伤害，剩余生命: %d\n", damage, playerHealth);
-}
-
-void Player_AddScore(int points) {
-    playerScore += points;
-    printf("玩家获得 %d 分，总分: %d\n", points, playerScore);
-}
+void Player_TakeDamage(int damage) { playerHealth -= damage; if(playerHealth<0) playerHealth=0; }
+void Player_AddScore(int points) { playerScore += points; }
