@@ -119,6 +119,14 @@ void UI_DrawHUD(void) {
     
     DrawText(TextFormat("HP: %d/%d", playerHealth, PLAYER_MAX_HEALTH), 
             UI_PANEL_X + 25, UI_PANEL_Y + 250, UI_SMALL_TEXT_SIZE, GRAY);
+
+     // 新增：显示音量（左下角）
+    DrawText(TextFormat("音乐音量：%.0f%%", Audio_GetMusicVolume()*100), 
+             20, SCREEN_HEIGHT - 70, 20, LIGHTGRAY);
+    DrawText(TextFormat("音效音量：%.0f%%", Audio_GetSfxVolume()*100), 
+             20, SCREEN_HEIGHT - 40, 20, LIGHTGRAY);
+    // 新增：音量调节提示
+    DrawText("↑↓调节音乐 | ←→调节音效", 20, SCREEN_HEIGHT - 100, 20, Fade(WHITE, 0.7f));
 }
 
 void UI_DrawPause(void) {

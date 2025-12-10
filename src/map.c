@@ -1,7 +1,8 @@
 // map.c - 随机迷宫生成 (Raylib 4.5兼容)
 #include "game.h"
 #include <stdio.h>
-#include <stdlib.h>  // 用于rand()
+#include <stdlib.h>
+#include <time.h>   // 用于rand()
 
 // ========== 私有数据 ==========
 static int gameMap[MAZE_HEIGHT][MAZE_WIDTH];  // 30×50地图数组
@@ -173,4 +174,7 @@ bool Map_IsWalkable(int gridX, int gridY) {
     
     int tileType = gameMap[gridY][gridX];
     return (tileType == TILE_FLOOR || tileType == TILE_GOAL);
+}
+int* Map_GetData(void) {
+    return &gameMap[0][0];  // 返回地图数组首地址
 }

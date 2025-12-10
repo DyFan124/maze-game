@@ -1,9 +1,9 @@
 #include "game.h"
 #include <stdio.h>
 
-static GameState currentState = GAME_STATE_PLAYING;
+static GameState currentState = GAME_STATE_MENU;
 
-// 添加一个函数来检测玩家是否到达终点
+// 该函数检测玩家是否到达终点
 static bool CheckPlayerReachedGoal(void) {
     int playerGridX, playerGridY;
     Player_GetPosition(&playerGridX, &playerGridY);
@@ -17,46 +17,76 @@ static bool CheckPlayerReachedGoal(void) {
         return true;
     }
     
-    return false;
+   else return false;
 }
 
 void Game_Init(void) {
-    currentState = GAME_STATE_MENU;  // 改成从菜单开始
-    
+    currentState = GAME_STATE_MENU;  // 从菜单开始
+
     // 初始化各模块
+    Audio_Init();
     Map_Init();
     Player_Init();
+    NPC_Init();
     
-    printf("=== 游戏初始化完成 ===\n");
+    printf("游戏初始化完成\n");
 }
 
 void Game_Update(void) {
+
+     // 新增：每帧更新音乐流（必须）
+    Audio_UpdateMusic();
+    
+    // 新增：音量调节逻辑（全局生效，和暂停键逻辑同级）
+    if (IsKeyPressed(KEY_UP)) {
+        Audio_SetMusicVolume(Audio_GetMusicVolume() + 0.1f);
+        printf("音乐音量：%.0f%%\n", Audio_GetMusicVolume() * 100);
+    }
+    if (IsKeyPressed(KEY_DOWN)) {
+        Audio_SetMusicVolume(Audio_GetMusicVolume() - 0.1f);
+        printf("音乐音量：%.0f%%\n", Audio_GetMusicVolume() * 100);
+    }
+    if (IsKeyPressed(KEY_RIGHT)) {
+        Audio_SetSfxVolume(Audio_GetSfxVolume() + 0.1f);
+        printf("音效音量：%.0f%%\n", Audio_GetSfxVolume() * 100);
+    }
+    if (IsKeyPressed(KEY_LEFT)) {
+        Audio_SetSfxVolume(Audio_GetSfxVolume() - 0.1f);
+        printf("音效音量：%.0f%%\n", Audio_GetSfxVolume() * 100);
+    }
+
     switch (currentState) {
         case GAME_STATE_MENU:
             // 菜单状态，等待开始
+            //enter键可以进入游戏
             if (IsKeyPressed(KEY_ENTER)) {
                 currentState = GAME_STATE_PLAYING;
+                 Audio_PlaySound(SFX_POINT); // ← 新增：按回车开始时播放音效  
                 printf("游戏开始！\n");
             }
             break;
-            
+          //IsKeyPressed包含于raylib库
+
         case GAME_STATE_PLAYING:
-            // 更新玩家（处理输入和移动）
+            // 更新玩家（处理输入和移动）和npc
             Player_Update();
+            NPC_Update(); 
             
             // 检查是否到达终点
             if (CheckPlayerReachedGoal()) {
                 currentState = GAME_STATE_WIN;
+                 Audio_PlaySound(SFX_WIN);  // ← 新增：胜利时播放音效
                 printf("游戏胜利！\n");
             }
             
             // 检查玩家生命值
             if (Player_GetHealth() <= 0) {
                 currentState = GAME_STATE_GAME_OVER;
+                Audio_PlaySound(SFX_GAMEOVER);  // ← 新增：失败时播放音效
                 printf("游戏失败！\n");
             }
             
-            // P键暂停
+            // 按P键暂停
             if (IsKeyPressed(KEY_P)) {
                 currentState = GAME_STATE_PAUSED;
                 printf("游戏暂停\n");
@@ -64,7 +94,7 @@ void Game_Update(void) {
             break;
             
         case GAME_STATE_PAUSED:
-            // P键继续
+            // 按P键继续
             if (IsKeyPressed(KEY_P)) {
                 currentState = GAME_STATE_PLAYING;
                 printf("游戏继续\n");
@@ -77,6 +107,7 @@ void Game_Update(void) {
                 // 重置游戏
                 Game_Init();
                 currentState = GAME_STATE_PLAYING;
+                Audio_PlaySound(SFX_POINT);  // ← 新增：重新开始播放音效
                 printf("重新开始游戏\n");
             }
             break;
@@ -84,8 +115,9 @@ void Game_Update(void) {
         case GAME_STATE_GAME_OVER:
             // R键重新开始
             if (IsKeyPressed(KEY_R)) {
-                Game_Init();
+                Player_Init();
                 currentState = GAME_STATE_PLAYING;
+                Audio_PlaySound(SFX_POINT);  // ← 新增：重新开始播放音 
                 printf("重新开始游戏\n");
             }
             break;
@@ -103,6 +135,7 @@ void Game_Draw(void) {
             
         case GAME_STATE_PLAYING:
             Map_Draw();
+            NPC_Draw(); 
             Player_Draw();
             UI_DrawHUD();
             break;

@@ -1,6 +1,7 @@
 // player.c - 完整版本
 #include "game.h"
 #include <math.h>
+#include <stdio.h> 
 
 static float playerX = CELL_SIZE * 1.5f;
 static float playerY = CELL_SIZE * 1.5f;
@@ -62,5 +63,20 @@ void Player_GetPosition(int* outGridX, int* outGridY) {
     *outGridX = (int)(playerX / CELL_SIZE);
     *outGridY = (int)(playerY / CELL_SIZE);
 }
-void Player_TakeDamage(int damage) { playerHealth -= damage; if(playerHealth<0) playerHealth=0; }
-void Player_AddScore(int points) { playerScore += points; }
+void Player_TakeDamage(int damage) { playerHealth -= damage; if(playerHealth<0) playerHealth=0;Audio_PlaySound(SFX_DAMAGE); } // ← 新增：受击时播放音效
+void Player_AddScore(int points) { playerScore += points; Audio_PlaySound(SFX_SCORE); } // ← 新增：得分时播放音效 
+
+PlayerData* Player_GetData(void) {
+    static PlayerData playerData;
+    
+    // 从现有数据填充
+    int gridX, gridY;
+    Player_GetPosition(&gridX, &gridY);
+    
+    playerData.gridX = gridX;
+    playerData.gridY = gridY;
+    playerData.health = Player_GetHealth();
+    playerData.score = Player_GetScore();
+    
+    return &playerData;
+}
