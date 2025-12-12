@@ -28,7 +28,9 @@ void Game_Init(void) {
     Map_Init();
     Player_Init();
     NPC_Init();
-    
+    Trap_Init();
+    Item_Init(); 
+
     printf("游戏初始化完成\n");
 }
 
@@ -70,8 +72,10 @@ void Game_Update(void) {
         case GAME_STATE_PLAYING:
             // 更新玩家（处理输入和移动）和npc
             Player_Update();
+            Trap_Update(); 
+            Item_Update(); 
             NPC_Update(); 
-            
+
             // 检查是否到达终点
             if (CheckPlayerReachedGoal()) {
                 currentState = GAME_STATE_WIN;
@@ -136,6 +140,8 @@ void Game_Draw(void) {
         case GAME_STATE_PLAYING:
             Map_Draw();
             NPC_Draw(); 
+            Trap_Draw(); 
+            Item_Draw();  
             Player_Draw();
             UI_DrawHUD();
             break;

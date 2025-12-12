@@ -66,17 +66,3 @@ void Player_GetPosition(int* outGridX, int* outGridY) {
 void Player_TakeDamage(int damage) { playerHealth -= damage; if(playerHealth<0) playerHealth=0;Audio_PlaySound(SFX_DAMAGE); } // ← 新增：受击时播放音效
 void Player_AddScore(int points) { playerScore += points; Audio_PlaySound(SFX_SCORE); } // ← 新增：得分时播放音效 
 
-PlayerData* Player_GetData(void) {
-    static PlayerData playerData;
-    
-    // 从现有数据填充
-    int gridX, gridY;
-    Player_GetPosition(&gridX, &gridY);
-    
-    playerData.gridX = gridX;
-    playerData.gridY = gridY;
-    playerData.health = Player_GetHealth();
-    playerData.score = Player_GetScore();
-    
-    return &playerData;
-}

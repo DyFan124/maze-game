@@ -4,6 +4,7 @@
 #include "raylib.h"  
 #include <stdbool.h>  
 
+
 //游戏全局配置
 // 这些常量所有人共用
 #define SCREEN_WIDTH  2000    
@@ -79,6 +80,17 @@ void NPC_Draw(void);                          // 绘制所有NPC
 int  NPC_GetCount(void);                      // 获取NPC数量（供碰撞检测循环）
 void NPC_GetPosition(int npcIndex, int* outGridX, int* outGridY); // 获取指定NPC坐标
 void Event_Update(void);                      // 更新动态事件系统
+
+//陷阱系统接口 (trap.c 实现) 
+void Trap_Init(void);      // 初始化所有陷阱
+void Trap_Update(void);    // 每帧更新陷阱状态
+void Trap_Draw(void);      // 绘制所有陷阱
+
+// 积分道具系统接口 (item.c 实现) 
+// 道具系统
+void Item_Init(void);      // 初始化道具
+void Item_Update(void);    // 更新道具
+void Item_Draw(void);      // 绘制道具
 
 
 // 模块4：UI系统接口 (ui.c )

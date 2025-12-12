@@ -175,6 +175,15 @@ bool Map_IsWalkable(int gridX, int gridY) {
     int tileType = gameMap[gridY][gridX];
     return (tileType == TILE_FLOOR || tileType == TILE_GOAL);
 }
-int* Map_GetData(void) {
-    return &gameMap[0][0];  // 返回地图数组首地址
+
+
+// 实现Map_SetTile：修改指定格子的类型（陷阱/道具系统核心依赖）
+void Map_SetTile(int gridX, int gridY, int tileType) {
+    // 边界检查：防止修改地图外的格子，避免程序崩溃
+    if (gridX < 0 || gridX >= MAZE_WIDTH || 
+        gridY < 0 || gridY >= MAZE_HEIGHT) {
+        return;
+    }
+    // 核心逻辑：修改地图数组的格子类型
+    gameMap[gridY][gridX] = tileType;
 }
