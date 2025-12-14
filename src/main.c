@@ -39,9 +39,8 @@ int main(void)
         EndDrawing();
     }
     
-    //  4. 游戏结束，清理资源
-    // 关闭窗口
-    CloseWindow();
+    //  4. 游戏结束
+        CloseWindow();// 关闭窗口
 
     return 0;
 }

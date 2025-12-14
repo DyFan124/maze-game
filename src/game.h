@@ -114,6 +114,7 @@ void Game_ChangeState(GameState newState);    // 改变游戏状态
 
 // ========== 音频类型定义（和你的TILE_XXX、GAME_STATE_XXX风格统一） ==========
 // 音效枚举：全组统一使用，修改需通知界面设计师
+// 音频类型定义
 typedef enum {
     SFX_START,       // 菜单背景音乐/开始音效
     SFX_POINT,       // 加分/道具音效
@@ -126,6 +127,7 @@ typedef enum {
 
 // ========== 音频模块接口声明（对应game.h的模块4/5风格） ==========
 // 负责人：界面设计师
+// 音频模块接口声明
 void Audio_Init(void);                          // 初始化音频设备+加载所有音效
 void Audio_PlaySound(SoundType type);           // 播放指定音效
 void Audio_SetSfxVolume(float volume);          // 设置音效音量（0.0~1.0）
