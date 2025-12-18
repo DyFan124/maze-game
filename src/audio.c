@@ -5,8 +5,7 @@
 #include "raymath.h" // 引入数学工具
 
 
-// 私有变量（仅音频模块内部使用）
-// 私有变量（音频模块自用）
+
 // 所有音效文件的路径
 static const char* SOUND_PATHS[SFX_COUNT] = {
     "assets/sfx/start.wav",       // SFX_START
@@ -35,10 +34,10 @@ static float musicVolume = 0.8f;   // 背景音乐默认音量（0.0=静音，1.
 // 音频模块核心函数（外部调用接口）
 
 // 接口实现 
-// 功能：初始化音频系统（游戏启动时只调用一次）
+// 功能：初始化音频系统
 void Audio_Init(void) {
-    // 初始化音频设备（Raylib要求）
-    // 第一步：初始化音频设备（Raylib库要求必须先初始化才能用音频）
+    // 初始化音频设备
+    // 第一步：初始化音频设备
     InitAudioDevice();
 
     // 加载所有音效
@@ -66,7 +65,7 @@ void Audio_Init(void) {
 // 参数：type - 要播放的音效类型（比如SFX_WIN、SFX_DAMAGE）
 void Audio_PlaySound(SoundType type) {
     // 防越界
-    // 安全检查：防止传入的音效类型超出范围（比如传了一个不存在的类型）
+    // 安全检查：防止传入的音效类型超出范围
     if (type < 0 || type >= SFX_COUNT) return;
     // 播放对应类型的音效
     PlaySound(sounds[type]);
@@ -108,12 +107,12 @@ float Audio_GetMusicVolume(void) {
 
 // 功能：更新背景音乐流（每帧调用，音乐播放防卡顿/停止）
 void Audio_UpdateMusic(void) {
-    // 每帧更新音乐流（否则背景音乐播放异常）
-    // 刷新背景音乐的播放状态（Raylib每帧调用）
+    // 每帧更新音乐流
+    // 刷新背景音乐的播放状态
     UpdateMusicStream(musicStart);
 }
 
-// 功能：释放音频资源（游戏退出时调用，防止内存泄漏）
+// 功能：释放音频资源
 void Audio_Unload(void) {
     // 释放所有音效
     // 第一步：释放所有加载的音效
